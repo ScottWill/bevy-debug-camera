@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 use bevy_debug_camera::{
-    DebugCamera, DebugCameraActive, DebugCameraPlugin, GamepadBindings, KeyboardBindings,
+    DebugCamera, DebugCameraActive, DebugCameraPlugin, GamepadBindings, KeyboardBindings, GamepadInput,
 };
 
 fn main() {
@@ -14,8 +14,8 @@ fn main() {
         .add_plugin(DebugCameraPlugin {
             gamepad_bindings: GamepadBindings {
                 // Overrides only the roll buttons
-                roll_left: GamepadButtonType::West,
-                roll_right: GamepadButtonType::East,
+                roll_left: GamepadInput::Button(GamepadButtonType::West),
+                roll_right: GamepadInput::Button(GamepadButtonType::East),
                 ..default()
             },
             keyboard_bindings: KeyboardBindings {

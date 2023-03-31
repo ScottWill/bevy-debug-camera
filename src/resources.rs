@@ -58,31 +58,46 @@ impl Default for KeyboardBindings {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum GamepadInput {
+    Axis(GamepadAxisType),
+    Button(GamepadButtonType),
+    Trigger(GamepadButtonType),
+}
+
 /// Configurable bindings for gamepad input. Field defaults can be found in the crate root
 /// documentation.
 #[derive(Resource, Debug, Clone)]
 pub struct GamepadBindings {
-    pub fwd_bwd: GamepadAxisType,
-    pub up: GamepadButtonType,
-    pub down: GamepadButtonType,
-    pub left_right: GamepadAxisType,
-    pub roll_left: GamepadButtonType,
-    pub roll_right: GamepadButtonType,
-    pub yaw: GamepadAxisType,
-    pub pitch: GamepadAxisType,
+    pub fwd: GamepadInput,
+    pub bwd: GamepadInput,
+    pub up: GamepadInput,
+    pub down: GamepadInput,
+    pub left: GamepadInput,
+    pub right: GamepadInput,
+    pub roll_left: GamepadInput,
+    pub roll_right: GamepadInput,
+    pub yaw_left: GamepadInput,
+    pub yaw_right: GamepadInput,
+    pub pitch_up: GamepadInput,
+    pub pitch_down: GamepadInput,
 }
 
 impl Default for GamepadBindings {
     fn default() -> GamepadBindings {
         GamepadBindings {
-            fwd_bwd: GamepadAxisType::LeftStickY,
-            up: GamepadButtonType::RightTrigger2,
-            down: GamepadButtonType::LeftTrigger2,
-            left_right: GamepadAxisType::LeftStickX,
-            roll_left: GamepadButtonType::LeftTrigger,
-            roll_right: GamepadButtonType::RightTrigger,
-            yaw: GamepadAxisType::RightStickX,
-            pitch: GamepadAxisType::RightStickY,
+            fwd: GamepadInput::Axis(GamepadAxisType::LeftStickY),
+            bwd: GamepadInput::Axis(GamepadAxisType::LeftStickY),
+            up: GamepadInput::Trigger(GamepadButtonType::RightTrigger2),
+            down: GamepadInput::Trigger(GamepadButtonType::LeftTrigger2),
+            left: GamepadInput::Axis(GamepadAxisType::LeftStickX),
+            right: GamepadInput::Axis(GamepadAxisType::LeftStickX),
+            roll_left: GamepadInput::Button(GamepadButtonType::LeftTrigger),
+            roll_right: GamepadInput::Button(GamepadButtonType::RightTrigger),
+            yaw_left: GamepadInput::Axis(GamepadAxisType::RightStickX),
+            yaw_right: GamepadInput::Axis(GamepadAxisType::RightStickX),
+            pitch_up: GamepadInput::Axis(GamepadAxisType::RightStickY),
+            pitch_down: GamepadInput::Axis(GamepadAxisType::RightStickY),
         }
     }
 }

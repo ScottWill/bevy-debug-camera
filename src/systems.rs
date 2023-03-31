@@ -1,6 +1,8 @@
+use std::ops::Neg;
+
 use crate::{
     components::DebugCamera,
-    resources::{ActiveGamepad, DebugCameraActive, GamepadBindings, KeyboardBindings},
+    resources::{ActiveGamepad, DebugCameraActive, GamepadBindings, KeyboardBindings, GamepadInput},
 };
 use bevy::{
     input::{
@@ -44,26 +46,22 @@ pub fn camera_movement_system(
     if debug_camera_active.gamepad {
         if let Some(gamepad) = active_gamepad.0 {
             // Apply translation
-            if let (Some(x), Some(y), Some(down), Some(up)) = (
-                axes.get(GamepadAxis::new(gamepad, gamepad_bindings.left_right)),
-                axes.get(GamepadAxis::new(gamepad, gamepad_bindings.fwd_bwd)),
-                button_axes.get(GamepadButton::new(gamepad, gamepad_bindings.down)),
-                button_axes.get(GamepadButton::new(gamepad, gamepad_bindings.up)),
-            ) {
-                let up_down = up - down;
-                local_translate_vec += time.delta_seconds() * Vec3::new(y, up_down, x);
-            }
+            let left = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.left, -1.0);
+            let right = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.right, 1.0);
+            let fwd = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.fwd, 1.0);
+            let bwd = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.bwd, -1.0);
+            let up = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.up, 1.0);
+            let down = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.down, -1.0);
+            local_translate_vec += time.delta_seconds() * Vec3::new(fwd + bwd, up + down, left + right);
 
             // Apply rotation
-            if let (Some(x), Some(y), roll_left, roll_right) = (
-                axes.get(GamepadAxis::new(gamepad, gamepad_bindings.yaw)),
-                axes.get(GamepadAxis::new(gamepad, gamepad_bindings.pitch)),
-                buttons.pressed(GamepadButton::new(gamepad, gamepad_bindings.roll_left)),
-                buttons.pressed(GamepadButton::new(gamepad, gamepad_bindings.roll_right)),
-            ) {
-                let roll = buttons_to_dir(roll_right, roll_left);
-                rotate_vec += time.delta_seconds() * Vec3::new(-x, y, roll);
-            }
+            let yaw_left = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.yaw_left, -1.0);
+            let yaw_right = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.yaw_right, 1.0);
+            let pitch_up = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.pitch_up, 1.0);
+            let pitch_down = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.pitch_down, -1.0);
+            let roll_left = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.roll_left, -1.0);
+            let roll_right = input_value(gamepad, &axes, &buttons, &button_axes, &gamepad_bindings.roll_right, 1.0);
+            rotate_vec += time.delta_seconds() * Vec3::new(-yaw_left - yaw_right, pitch_up + pitch_down, roll_left + roll_right);
         }
     }
 
@@ -237,12 +235,46 @@ pub fn gamepad_connections(
     }
 }
 
-fn buttons_to_dir(positive: bool, negative: bool) -> f32 {
+fn input_value(
+    gamepad: Gamepad,
+    axes: &Axis<GamepadAxis>,
+    buttons: &Input<GamepadButton>,
+    button_axes: &Axis<GamepadButton>,
+    input: &GamepadInput,
+    dir: f32,
+) -> f32 {
+    match input {
+        GamepadInput::Axis(axis) => {
+            if let Some(v) = axes.get(GamepadAxis::new(gamepad, *axis)) {
+                if v.signum() == dir.signum() {
+                    return v;
+                }
+            }
+        }
+        GamepadInput::Button(button) => {
+            if buttons.pressed(GamepadButton::new(gamepad, *button)) {
+                return dir.signum();
+            }
+        }
+        GamepadInput::Trigger(button) => {
+            if let Some(v) = button_axes.get(GamepadButton::new(gamepad, *button)) {
+                return v * dir.signum();
+            }
+        }
+    }
+    return 0.0;
+}
+
+fn buttons_to_dir<T>(positive: bool, negative: bool) -> T
+where T: From<i8>
+{
     (Into::<i8>::into(positive) - Into::<i8>::into(negative)).into()
 }
 
 #[inline(always)]
-fn invert(v: f32, invert: bool) -> f32 {
+fn invert<T>(v: T, invert: bool) -> T
+where T: Neg<Output = T>
+{
     match invert {
         true => -v,
         false => v,

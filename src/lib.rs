@@ -128,7 +128,7 @@ mod resources;
 mod systems;
 
 pub use components::DebugCamera;
-pub use resources::{ActiveGamepad, DebugCameraActive, GamepadBindings, KeyboardBindings};
+pub use resources::{ActiveGamepad, DebugCameraActive, GamepadBindings, GamepadInput, KeyboardBindings};
 
 use bevy::prelude::*;
 
