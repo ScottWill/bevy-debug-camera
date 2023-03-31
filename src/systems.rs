@@ -169,10 +169,14 @@ pub fn cursor_grab_system(
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
     debug_camera_active: Res<DebugCameraActive>,
 ) {
-    if debug_camera_active.keymouse {
-        let mut window = windows.get_single_mut().unwrap();
-        window.cursor.grab_mode = CursorGrabMode::Locked;
-        window.cursor.visible = false;
+    if let Ok(mut window) = windows.get_single_mut() {
+        if window.cursor.visible == debug_camera_active.keymouse {
+            window.cursor.visible = !window.cursor.visible;
+            window.cursor.grab_mode = match window.cursor.visible {
+                true => CursorGrabMode::None,
+                false => CursorGrabMode::Locked,
+            };
+        }
     }
 }
 
