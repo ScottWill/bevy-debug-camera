@@ -13,6 +13,9 @@ pub struct DebugCameraActive {
     /// If set to true, our gamepad bindings will be active for any cameras marked as
     /// [`crate::DebugCamera`].
     pub gamepad: bool,
+
+    pub invert_x: bool,
+    pub invert_y: bool,
 }
 
 impl Default for DebugCameraActive {
@@ -20,6 +23,8 @@ impl Default for DebugCameraActive {
         DebugCameraActive {
             keymouse: true,
             gamepad: true,
+            invert_x: false,
+            invert_y: false,
         }
     }
 }

@@ -122,18 +122,23 @@ pub fn camera_movement_system(
         // Translation first. It's just a simple basis matrix multiplication
         controlled_camera.position += speed_translate * (basis_matrix * local_translate_vec);
 
+        // invert x?
+        let x_rot = invert(rotate_vec.x, debug_camera_active.invert_x);
         // Rotation last. Rotation is applied on each direction individually for simplicity
         // x rotation is relative to the up vector. Should keep both vectors perpendicular
         let x_rot_quat = Quat::from_axis_angle(
             controlled_camera.up,
-            rotate_vec.x * controlled_camera.speed_rotate,
+            x_rot * controlled_camera.speed_rotate,
         );
         controlled_camera.fwd = x_rot_quat * controlled_camera.fwd;
         right = x_rot_quat * right;
+
+        // invert y?
+        let y_rot = invert(rotate_vec.y, debug_camera_active.invert_y);
         // y rotation is done by the right axis, which we just updated to rotate both fwd and up.
         // Both are still perpendicular and unit vectors, so we don't need to normalise the result.
         let y_rot_quat =
-            Quat::from_axis_angle(right, rotate_vec.y * controlled_camera.speed_rotate);
+            Quat::from_axis_angle(right, y_rot * controlled_camera.speed_rotate);
         controlled_camera.fwd = y_rot_quat * controlled_camera.fwd;
         controlled_camera.up = y_rot_quat * controlled_camera.up;
         // lastly, z rotation is done relative to the fwd vector.
@@ -234,4 +239,12 @@ pub fn gamepad_connections(
 
 fn buttons_to_dir(positive: bool, negative: bool) -> f32 {
     (Into::<i8>::into(positive) - Into::<i8>::into(negative)).into()
+}
+
+#[inline(always)]
+fn invert(v: f32, invert: bool) -> f32 {
+    match invert {
+        true => -v,
+        false => v,
+    }
 }
