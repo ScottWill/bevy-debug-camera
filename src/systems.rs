@@ -233,11 +233,5 @@ pub fn gamepad_connections(
 }
 
 fn buttons_to_dir(positive: bool, negative: bool) -> f32 {
-    if positive == negative {
-        0.
-    } else if positive {
-        1.
-    } else {
-        -1.
-    }
+    (Into::<i8>::into(positive) - Into::<i8>::into(negative)).into()
 }
